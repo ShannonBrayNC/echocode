@@ -1,0 +1,256 @@
+{
+  "root": ".",
+  "directories": [
+    "docs",
+    "docs/architecture",
+    "config",
+    "schemas",
+    "src/echocode",
+    "src/echocode/orchestrator",
+    "src/echocode/agents",
+    "src/echocode/adapters",
+    "src/echocode/domain",
+    "src/echocode/services",
+    "src/echocode/prompts",
+    "src/echocode/telemetry",
+    "src/echocode/utils",
+    "tests/unit",
+    "tests/fixtures",
+    "tools",
+    ".github/workflows"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "content": "# EchoCode Platform\n\nMeta-build system for a multi-agent SDLC platform.\n"
+    },
+    {
+      "path": ".gitignore",
+      "content": "__pycache__/\n.venv/\n.env\n.pytest_cache/\n.mypy_cache/\n.ruff_cache/\n"
+    },
+    {
+      "path": ".env.example",
+      "content": "APP_ENV=local\nAPP_NAME=EchoCode Platform\nGITHUB_OWNER=\nGITHUB_REPO=echocode-platform\nGITHUB_TOKEN=\nOPENAI_API_KEY=\n"
+    },
+    {
+      "path": "requirements.txt",
+      "content": "pydantic>=2.7.0\npyyaml>=6.0.1\nhttpx>=0.27.0\ntyper>=0.12.3\nrich>=13.7.1\npytest>=8.2.0\njsonschema>=4.22.0\n"
+    },
+    {
+      "path": "pyproject.toml",
+      "content": "[project]\nname = \"echocode-platform\"\nversion = \"0.1.0\"\ndescription = \"Multi-agent SDLC platform with GitHub-native traceability and drift prevention\"\nreadme = \"README.md\"\nrequires-python = \">=3.11\"\ndependencies = [\n    \"pydantic>=2.7.0\",\n    \"pyyaml>=6.0.1\",\n    \"httpx>=0.27.0\",\n    \"typer>=0.12.3\",\n    \"rich>=13.7.1\",\n    \"pytest>=8.2.0\",\n    \"jsonschema>=4.22.0\",\n]\n\n[project.optional-dependencies]\ndev = [\n    \"ruff>=0.5.0\",\n    \"mypy>=1.10.0\",\n    \"pytest-cov>=5.0.0\",\n]\n\n[build-system]\nrequires = [\"setuptools>=68\", \"wheel\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[tool.setuptools]\npackage-dir = {\"\" = \"src\"}\n\n[tool.setuptools.packages.find]\nwhere = [\"src\"]\n\n[tool.pytest.ini_options]\ntestpaths = [\"tests\"]\n\n[tool.ruff]\nline-length = 100\ntarget-version = \"py311\"\n\n[tool.mypy]\npython_version = \"3.11\"\nstrict = false\nwarn_return_any = true\nwarn_unused_configs = true\n"
+    },
+    {
+      "path": "docs/project-charter.md",
+      "content": "# EchoCode Platform Project Charter\n\n## Purpose\nBuild a multi-agent software delivery platform that converts approved requirements into structured, traceable, high-quality delivery artifacts with minimal requirement and architectural drift.\n"
+    },
+    {
+      "path": "docs/runbook.md",
+      "content": "# Runbook\n\n## Bootstrap\n```powershell\n.\\tools\\bootstrap.ps1\n```\n\n## Run health check\n```powershell\npython -m echocode.main health\n```\n"
+    },
+    {
+      "path": "docs/architecture/architecture-manifest.yaml",
+      "content": "system_name: EchoCode Platform\nversion: 0.1.0\n\nprinciples:\n  - Approved artifacts are the source of truth\n  - Every handoff must be structured\n  - Every code change must be traceable\n  - No direct writes to protected branches\n"
+    },
+    {
+      "path": "config/settings.yaml",
+      "content": "app:\n  name: EchoCode Platform\n  env: local\n  log_level: INFO\n"
+    },
+    {
+      "path": "config/model-routing.yaml",
+      "content": "models:\n  pm_agent:\n    provider: openai\n    model: gpt-5\n  scribe_agent:\n    provider: openai\n    model: gpt-5\n"
+    },
+    {
+      "path": "config/policy.yaml",
+      "content": "required_pr_fields:\n  - Requirement IDs\n  - Design Links\n  - Validation\n  - Evidence\n\ntraceability:\n  require_requirement_ids: true\n  require_work_item_ids: true\n  require_evidence_bundle: true\n"
+    },
+    {
+      "path": "config/approvals.yaml",
+      "content": "gates:\n  requirement_baseline:\n    required: true\n    approvers:\n      - human\n  architecture_baseline:\n    required: true\n    approvers:\n      - human\n"
+    },
+    {
+      "path": "schemas/requirement.schema.json",
+      "content": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"title\": \"Requirement\",\n  \"type\": \"object\",\n  \"required\": [\"requirement_id\", \"title\", \"description\", \"acceptance_criteria\", \"status\"],\n  \"properties\": {\n    \"requirement_id\": { \"type\": \"string\", \"pattern\": \"^REQ-[A-Z0-9]{6,}$\" },\n    \"title\": { \"type\": \"string\", \"minLength\": 3 },\n    \"description\": { \"type\": \"string\", \"minLength\": 10 },\n    \"acceptance_criteria\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": { \"type\": \"string\", \"minLength\": 3 }\n    },\n    \"status\": { \"type\": \"string\", \"enum\": [\"draft\", \"approved\", \"implemented\", \"rejected\"] }\n  },\n  \"additionalProperties\": false\n}\n"
+    },
+    {
+      "path": "schemas/work-item.schema.json",
+      "content": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"title\": \"WorkItem\",\n  \"type\": \"object\",\n  \"required\": [\"work_item_id\", \"title\", \"requirement_ids\", \"expected_outcomes\", \"status\"],\n  \"properties\": {\n    \"work_item_id\": { \"type\": \"string\", \"pattern\": \"^WI-[A-Z0-9]{6,}$\" },\n    \"title\": { \"type\": \"string\", \"minLength\": 3 },\n    \"requirement_ids\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": { \"type\": \"string\", \"pattern\": \"^REQ-[A-Z0-9]{6,}$\" }\n    },\n    \"expected_outcomes\": {\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": { \"type\": \"string\", \"minLength\": 3 }\n    },\n    \"status\": { \"type\": \"string\", \"enum\": [\"planned\", \"in_progress\", \"review\", \"done\", \"blocked\"] }\n  },\n  \"additionalProperties\": false\n}\n"
+    },
+    {
+      "path": "schemas/evidence-bundle.schema.json",
+      "content": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"title\": \"EvidenceBundle\",\n  \"type\": \"object\",\n  \"required\": [\"evidence_id\", \"work_item_id\", \"summary\", \"artifacts\", \"status\"],\n  \"properties\": {\n    \"evidence_id\": { \"type\": \"string\", \"pattern\": \"^EVD-[A-Z0-9]{6,}$\" },\n    \"work_item_id\": { \"type\": \"string\", \"pattern\": \"^WI-[A-Z0-9]{6,}$\" },\n    \"summary\": { \"type\": \"string\", \"minLength\": 5 },\n    \"artifacts\": { \"type\": \"array\", \"items\": { \"type\": \"string\" } },\n    \"status\": { \"type\": \"string\", \"enum\": [\"draft\", \"complete\"] }\n  },\n  \"additionalProperties\": false\n}\n"
+    },
+    {
+      "path": "src/echocode/__init__.py",
+      "content": "__all__ = [\"__version__\"]\n\n__version__ = \"0.1.0\"\n"
+    },
+    {
+      "path": "src/echocode/main.py",
+      "content": "from echocode.cli import app\n\nif __name__ == \"__main__\":\n    app()\n"
+    },
+    {
+      "path": "src/echocode/app.py",
+      "content": "from pathlib import Path\n\nAPP_ROOT = Path(__file__).resolve().parent\nPROJECT_ROOT = APP_ROOT.parent.parent.parent\n"
+    },
+    {
+      "path": "src/echocode/cli.py",
+      "content": "from __future__ import annotations\n\nimport json\nimport typer\nfrom rich.console import Console\nfrom rich.pretty import Pretty\n\nfrom echocode import __version__\nfrom echocode.app import PROJECT_ROOT\nfrom echocode.domain.models import Requirement, WorkItem\nfrom echocode.services.evidence_service import EvidenceService\nfrom echocode.services.policy_service import PolicyService\nfrom echocode.services.traceability_service import TraceabilityService\nfrom echocode.utils.files import ensure_directory, write_text_file\nfrom echocode.utils.json_tools import load_json_file\n\napp = typer.Typer(help=\"EchoCode Platform CLI\")\nconsole = Console()\n\n\n@app.command()\ndef health() -> None:\n    console.print(\"[green]EchoCode Platform is alive.[/green]\")\n\n\n@app.command()\ndef version() -> None:\n    console.print(f\"EchoCode Platform v{__version__}\")\n\n\n@app.command(\"validate-policy\")\ndef validate_policy() -> None:\n    service = PolicyService.from_default_paths(PROJECT_ROOT)\n    console.print(Pretty(service.summary()))\n\n\n@app.command(\"seed-sample\")\ndef seed_sample() -> None:\n    fixtures_dir = PROJECT_ROOT / \"tests\" / \"fixtures\"\n    artifacts_dir = PROJECT_ROOT / \"artifacts\"\n    ensure_directory(artifacts_dir)\n\n    req_data = load_json_file(fixtures_dir / \"sample_requirement.json\")\n    wi_data = load_json_file(fixtures_dir / \"sample_work_item.json\")\n\n    requirement = Requirement.model_validate(req_data)\n    work_item = WorkItem.model_validate(wi_data)\n\n    trace_service = TraceabilityService()\n    evidence_service = EvidenceService()\n\n    trace_record = trace_service.link_work_item(requirement_ids=work_item.requirement_ids, work_item=work_item)\n    evidence = evidence_service.create_bundle(\n        work_item_id=work_item.work_item_id,\n        summary=\"Seeded sample evidence bundle for initial platform validation.\",\n        artifacts=[\"artifacts/sample-log.txt\", \"artifacts/sample-report.json\"],\n    )\n\n    write_text_file(artifacts_dir / \"sample_traceability.json\", json.dumps(trace_record, indent=2))\n    write_text_file(artifacts_dir / \"sample_evidence_bundle.json\", evidence.model_dump_json(indent=2))\n\n    console.print(\"[green]Sample artifacts created.[/green]\")\n"
+    },
+    {
+      "path": "src/echocode/orchestrator/__init__.py",
+      "content": ""
+    },
+    {
+      "path": "src/echocode/orchestrator/state.py",
+      "content": "from pydantic import BaseModel, Field\n\n\nclass WorkflowState(BaseModel):\n    workflow_id: str\n    current_stage: str\n    status: str = \"active\"\n    notes: list[str] = Field(default_factory=list)\n"
+    },
+    {
+      "path": "src/echocode/orchestrator/handoffs.py",
+      "content": "from pydantic import BaseModel, Field\n\n\nclass HandoffPayload(BaseModel):\n    source_agent: str\n    target_agent: str\n    context: dict[str, object] = Field(default_factory=dict)\n    required_artifacts: list[str] = Field(default_factory=list)\n"
+    },
+    {
+      "path": "src/echocode/orchestrator/approvals.py",
+      "content": "from pydantic import BaseModel\n\n\nclass ApprovalDecision(BaseModel):\n    gate_name: str\n    approved: bool\n    approver: str\n    notes: str = \"\"\n"
+    },
+    {
+      "path": "src/echocode/agents/__init__.py",
+      "content": ""
+    },
+    {
+      "path": "src/echocode/agents/base.py",
+      "content": "from abc import ABC, abstractmethod\nfrom typing import Any\n\n\nclass BaseAgent(ABC):\n    def __init__(self, name: str) -> None:\n        self.name = name\n\n    @abstractmethod\n    def run(self, payload: dict[str, Any]) -> dict[str, Any]:\n        raise NotImplementedError\n"
+    },
+    {
+      "path": "src/echocode/agents/pm_agent.py",
+      "content": "from typing import Any\n\nfrom echocode.agents.base import BaseAgent\nfrom echocode.domain.models import Requirement\nfrom echocode.domain.validators import validate_requirement_payload\n\n\nclass PMAgent(BaseAgent):\n    def __init__(self) -> None:\n        super().__init__(name=\"pm_agent\")\n\n    def run(self, payload: dict[str, Any]) -> dict[str, Any]:\n        validate_requirement_payload(payload)\n        requirement = Requirement.model_validate(payload)\n        return {\n            \"agent\": self.name,\n            \"status\": \"ok\",\n            \"requirement_id\": requirement.requirement_id,\n            \"title\": requirement.title,\n            \"next_action\": \"human_requirement_approval\"\n        }\n"
+    },
+    {
+      "path": "src/echocode/agents/scribe_agent.py",
+      "content": "from typing import Any\n\nfrom echocode.agents.base import BaseAgent\nfrom echocode.domain.models import Requirement, WorkItem\n\n\nclass ScribeAgent(BaseAgent):\n    def __init__(self) -> None:\n        super().__init__(name=\"scribe_agent\")\n\n    def run(self, payload: dict[str, Any]) -> dict[str, Any]:\n        kind = payload.get(\"kind\")\n        if kind == \"requirement\":\n            requirement = Requirement.model_validate(payload[\"data\"])\n            return {\n                \"agent\": self.name,\n                \"status\": \"ok\",\n                \"artifact_type\": \"requirement_doc\",\n                \"artifact_name\": f\"{requirement.requirement_id}.md\"\n            }\n        if kind == \"work_item\":\n            work_item = WorkItem.model_validate(payload[\"data\"])\n            return {\n                \"agent\": self.name,\n                \"status\": \"ok\",\n                \"artifact_type\": \"work_item_doc\",\n                \"artifact_name\": f\"{work_item.work_item_id}.md\"\n            }\n        return {\"agent\": self.name, \"status\": \"error\", \"message\": \"Unsupported payload kind.\"}\n"
+    },
+    {
+      "path": "src/echocode/adapters/__init__.py",
+      "content": ""
+    },
+    {
+      "path": "src/echocode/adapters/github_adapter.py",
+      "content": "from dataclasses import dataclass\n\n\n@dataclass\nclass GitHubAdapter:\n    owner: str\n    repo: str\n\n    def repo_slug(self) -> str:\n        return f\"{self.owner}/{self.repo}\"\n"
+    },
+    {
+      "path": "src/echocode/adapters/model_adapter.py",
+      "content": "from dataclasses import dataclass\n\n\n@dataclass\nclass ModelAdapter:\n    provider: str\n    model: str\n\n    def describe(self) -> str:\n        return f\"{self.provider}:{self.model}\"\n"
+    },
+    {
+      "path": "src/echocode/domain/__init__.py",
+      "content": ""
+    },
+    {
+      "path": "src/echocode/domain/enums.py",
+      "content": "from enum import Enum\n\n\nclass RequirementStatus(str, Enum):\n    DRAFT = \"draft\"\n    APPROVED = \"approved\"\n    IMPLEMENTED = \"implemented\"\n    REJECTED = \"rejected\"\n\n\nclass WorkItemStatus(str, Enum):\n    PLANNED = \"planned\"\n    IN_PROGRESS = \"in_progress\"\n    REVIEW = \"review\"\n    DONE = \"done\"\n    BLOCKED = \"blocked\"\n\n\nclass EvidenceStatus(str, Enum):\n    DRAFT = \"draft\"\n    COMPLETE = \"complete\"\n"
+    },
+    {
+      "path": "src/echocode/domain/ids.py",
+      "content": "import secrets\n\n\ndef _new_id(prefix: str) -> str:\n    token = secrets.token_hex(4).upper()\n    return f\"{prefix}-{token}\"\n\n\ndef new_requirement_id() -> str:\n    return _new_id(\"REQ\")\n\n\ndef new_work_item_id() -> str:\n    return _new_id(\"WI\")\n\n\ndef new_evidence_id() -> str:\n    return _new_id(\"EVD\")\n"
+    },
+    {
+      "path": "src/echocode/domain/models.py",
+      "content": "from pydantic import BaseModel, Field\n\nfrom echocode.domain.enums import EvidenceStatus, RequirementStatus, WorkItemStatus\n\n\nclass Requirement(BaseModel):\n    requirement_id: str\n    title: str\n    description: str\n    acceptance_criteria: list[str]\n    assumptions: list[str] = Field(default_factory=list)\n    constraints: list[str] = Field(default_factory=list)\n    status: RequirementStatus\n\n\nclass WorkItem(BaseModel):\n    work_item_id: str\n    title: str\n    requirement_ids: list[str]\n    design_ids: list[str] = Field(default_factory=list)\n    expected_outcomes: list[str]\n    allowed_files: list[str] = Field(default_factory=list)\n    status: WorkItemStatus\n\n\nclass EvidenceBundle(BaseModel):\n    evidence_id: str\n    work_item_id: str\n    summary: str\n    artifacts: list[str]\n    notes: list[str] = Field(default_factory=list)\n    status: EvidenceStatus\n"
+    },
+    {
+      "path": "src/echocode/domain/validators.py",
+      "content": "import jsonschema\n\nfrom echocode.app import PROJECT_ROOT\nfrom echocode.utils.json_tools import load_json_file\n\n\ndef _load_schema(schema_name: str) -> dict:\n    schema_path = PROJECT_ROOT / \"schemas\" / schema_name\n    return load_json_file(schema_path)\n\n\ndef validate_requirement_payload(payload: dict) -> None:\n    jsonschema.validate(instance=payload, schema=_load_schema(\"requirement.schema.json\"))\n\n\ndef validate_work_item_payload(payload: dict) -> None:\n    jsonschema.validate(instance=payload, schema=_load_schema(\"work-item.schema.json\"))\n\n\ndef validate_evidence_bundle_payload(payload: dict) -> None:\n    jsonschema.validate(instance=payload, schema=_load_schema(\"evidence-bundle.schema.json\"))\n"
+    },
+    {
+      "path": "src/echocode/services/__init__.py",
+      "content": ""
+    },
+    {
+      "path": "src/echocode/services/traceability_service.py",
+      "content": "from dataclasses import dataclass, field\n\nfrom echocode.domain.models import WorkItem\n\n\n@dataclass\nclass TraceabilityService:\n    records: list[dict[str, object]] = field(default_factory=list)\n\n    def link_work_item(self, requirement_ids: list[str], work_item: WorkItem) -> dict[str, object]:\n        record = {\n            \"work_item_id\": work_item.work_item_id,\n            \"requirement_ids\": requirement_ids,\n            \"design_ids\": work_item.design_ids,\n            \"expected_outcomes\": work_item.expected_outcomes,\n            \"status\": work_item.status.value,\n        }\n        self.records.append(record)\n        return record\n"
+    },
+    {
+      "path": "src/echocode/services/policy_service.py",
+      "content": "from dataclasses import dataclass\nfrom pathlib import Path\n\nfrom echocode.utils.json_tools import load_yaml_file\n\n\n@dataclass\nclass PolicyService:\n    project_root: Path\n    policy: dict\n    settings: dict\n    approvals: dict\n\n    @classmethod\n    def from_default_paths(cls, project_root: Path) -> \"PolicyService\":\n        config_dir = project_root / \"config\"\n        return cls(\n            project_root=project_root,\n            policy=load_yaml_file(config_dir / \"policy.yaml\"),\n            settings=load_yaml_file(config_dir / \"settings.yaml\"),\n            approvals=load_yaml_file(config_dir / \"approvals.yaml\"),\n        )\n\n    def summary(self) -> dict[str, object]:\n        return {\n            \"required_pr_fields\": self.policy.get(\"required_pr_fields\", []),\n            \"traceability\": self.policy.get(\"traceability\", {}),\n            \"approval_gates\": self.approvals.get(\"gates\", {}),\n            \"app_settings\": self.settings.get(\"app\", {}),\n        }\n\n    def require_tests_for_code_changes(self) -> bool:\n        return bool(self.policy.get(\"coding_rules\", {}).get(\"require_tests_for_code_changes\", True))\n\n    def required_pr_fields(self) -> list[str]:\n        return list(self.policy.get(\"required_pr_fields\", []))\n"
+    },
+    {
+      "path": "src/echocode/services/evidence_service.py",
+      "content": "from echocode.domain.enums import EvidenceStatus\nfrom echocode.domain.ids import new_evidence_id\nfrom echocode.domain.models import EvidenceBundle\n\n\nclass EvidenceService:\n    def create_bundle(self, work_item_id: str, summary: str, artifacts: list[str]) -> EvidenceBundle:\n        return EvidenceBundle(\n            evidence_id=new_evidence_id(),\n            work_item_id=work_item_id,\n            summary=summary,\n            artifacts=artifacts,\n            notes=[],\n            status=EvidenceStatus.COMPLETE,\n        )\n"
+    },
+    {
+      "path": "src/echocode/prompts/__init__.py",
+      "content": ""
+    },
+    {
+      "path": "src/echocode/prompts/loader.py",
+      "content": "from pathlib import Path\n\nfrom echocode.utils.files import read_text_file\n\n\nclass PromptLoader:\n    def __init__(self, docs_prompts_root: Path) -> None:\n        self.docs_prompts_root = docs_prompts_root\n\n    def load(self, filename: str) -> str:\n        return read_text_file(self.docs_prompts_root / filename)\n"
+    },
+    {
+      "path": "src/echocode/telemetry/__init__.py",
+      "content": ""
+    },
+    {
+      "path": "src/echocode/telemetry/logging.py",
+      "content": "import logging\n\n\ndef configure_logging(level: str = \"INFO\") -> None:\n    logging.basicConfig(\n        level=getattr(logging, level.upper(), logging.INFO),\n        format=\"%(asctime)s %(levelname)s %(name)s %(message)s\",\n    )\n"
+    },
+    {
+      "path": "src/echocode/utils/__init__.py",
+      "content": ""
+    },
+    {
+      "path": "src/echocode/utils/files.py",
+      "content": "from pathlib import Path\n\n\ndef ensure_directory(path: Path) -> None:\n    path.mkdir(parents=True, exist_ok=True)\n\n\ndef read_text_file(path: Path) -> str:\n    return path.read_text(encoding=\"utf-8\")\n\n\ndef write_text_file(path: Path, content: str) -> None:\n    path.parent.mkdir(parents=True, exist_ok=True)\n    path.write_text(content, encoding=\"utf-8\")\n"
+    },
+    {
+      "path": "src/echocode/utils/json_tools.py",
+      "content": "import json\nfrom pathlib import Path\n\nimport yaml\n\n\ndef load_json_file(path: Path) -> dict:\n    return json.loads(path.read_text(encoding=\"utf-8\"))\n\n\ndef load_yaml_file(path: Path) -> dict:\n    return yaml.safe_load(path.read_text(encoding=\"utf-8\"))\n"
+    },
+    {
+      "path": "tests/fixtures/sample_requirement.json",
+      "content": "{\n  \"requirement_id\": \"REQ-ABC123\",\n  \"title\": \"Create a PM intake normalization flow\",\n  \"description\": \"The platform must normalize incoming project requests into structured requirement records.\",\n  \"acceptance_criteria\": [\n    \"Requirement payload validates against schema\",\n    \"Requirement is ready for approval workflow\"\n  ],\n  \"assumptions\": [\n    \"Human approval will occur after intake\"\n  ],\n  \"constraints\": [\n    \"Approved artifacts are the source of truth\"\n  ],\n  \"status\": \"draft\"\n}\n"
+    },
+    {
+      "path": "tests/fixtures/sample_work_item.json",
+      "content": "{\n  \"work_item_id\": \"WI-ABC123\",\n  \"title\": \"Implement requirement normalization CLI seed\",\n  \"requirement_ids\": [\"REQ-ABC123\"],\n  \"design_ids\": [],\n  \"expected_outcomes\": [\n    \"CLI can seed sample artifacts\",\n    \"Traceability record is created\",\n    \"Evidence bundle is generated\"\n  ],\n  \"allowed_files\": [\n    \"src/echocode/cli.py\",\n    \"src/echocode/services/traceability_service.py\",\n    \"src/echocode/services/evidence_service.py\"\n  ],\n  \"status\": \"planned\"\n}\n"
+    },
+    {
+      "path": "tests/unit/test_domain_models.py",
+      "content": "from echocode.domain.enums import RequirementStatus, WorkItemStatus\nfrom echocode.domain.models import Requirement, WorkItem\n\n\ndef test_requirement_model() -> None:\n    requirement = Requirement(\n        requirement_id=\"REQ-ABC123\",\n        title=\"Test requirement\",\n        description=\"This is a valid test requirement payload.\",\n        acceptance_criteria=[\"It validates\"],\n        status=RequirementStatus.DRAFT,\n    )\n    assert requirement.requirement_id == \"REQ-ABC123\"\n\n\ndef test_work_item_model() -> None:\n    work_item = WorkItem(\n        work_item_id=\"WI-ABC123\",\n        title=\"Test work item\",\n        requirement_ids=[\"REQ-ABC123\"],\n        expected_outcomes=[\"Outcome 1\"],\n        status=WorkItemStatus.PLANNED,\n    )\n    assert work_item.work_item_id == \"WI-ABC123\"\n"
+    },
+    {
+      "path": "tests/unit/test_traceability_service.py",
+      "content": "from echocode.domain.enums import WorkItemStatus\nfrom echocode.domain.models import WorkItem\nfrom echocode.services.traceability_service import TraceabilityService\n\n\ndef test_link_work_item() -> None:\n    service = TraceabilityService()\n    work_item = WorkItem(\n        work_item_id=\"WI-ABC123\",\n        title=\"Traceability test item\",\n        requirement_ids=[\"REQ-ABC123\"],\n        expected_outcomes=[\"Outcome 1\"],\n        status=WorkItemStatus.PLANNED,\n    )\n\n    record = service.link_work_item(requirement_ids=[\"REQ-ABC123\"], work_item=work_item)\n\n    assert record[\"work_item_id\"] == \"WI-ABC123\"\n"
+    },
+    {
+      "path": "tests/unit/test_policy_service.py",
+      "content": "from echocode.app import PROJECT_ROOT\nfrom echocode.services.policy_service import PolicyService\n\n\ndef test_policy_service_loads() -> None:\n    service = PolicyService.from_default_paths(PROJECT_ROOT)\n    summary = service.summary()\n    assert \"required_pr_fields\" in summary\n"
+    },
+    {
+      "path": "tools/bootstrap.ps1",
+      "content": "param()\n\nWrite-Host \"Bootstrapping EchoCode Platform...\" -ForegroundColor Cyan\n\nif (-not (Test-Path \".\\.venv\")) {\n    python -m venv .venv\n}\n\n& \".\\.venv\\Scripts\\Activate.ps1\"\n\npython -m pip install --upgrade pip\npip install -r requirements.txt\npip install -e .[dev]\n\nWrite-Host \"Bootstrap complete.\" -ForegroundColor Green\n"
+    },
+    {
+      "path": "tools/run-local.ps1",
+      "content": "param()\n\n& \".\\.venv\\Scripts\\Activate.ps1\"\npython -m echocode.main health\npython -m echocode.main version\n"
+    },
+    {
+      "path": "tools/validate.ps1",
+      "content": "param()\n\n& \".\\.venv\\Scripts\\Activate.ps1\"\nruff check .\nmypy src\npytest\n"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "content": "## Summary\nDescribe the change.\n\n## Requirement Links\n- Requirement IDs:\n\n## Design Links\n- Architecture IDs:\n- ADR IDs:\n\n## Validation\n- [ ] Unit tests added or updated\n- [ ] Lint passed\n- [ ] Type-check passed\n- [ ] Policy checks passed\n- [ ] Evidence updated\n"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "content": "name: CI\n\non:\n  push:\n    branches: [main, develop]\n  pull_request:\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v4\n      - name: Setup Python\n        uses: actions/setup-python@v5\n        with:\n          python-version: \"3.11\"\n      - name: Install dependencies\n        run: |\n          python -m pip install --upgrade pip\n          pip install -r requirements.txt\n          pip install -e .[dev]\n      - name: Ruff\n        run: ruff check .\n      - name: MyPy\n        run: mypy src\n      - name: Pytest\n        run: pytest\n"
+    },
+    {
+      "path": ".github/workflows/policy-check.yml",
+      "content": "name: Policy Check\n\non:\n  pull_request:\n\njobs:\n  policy:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v4\n      - name: Verify config files exist\n        run: |\n          test -f config/policy.yaml\n          test -f config/settings.yaml\n          test -f config/approvals.yaml\n          test -f docs/architecture/architecture-manifest.yaml\n"
+    },
+    {
+      "path": ".github/workflows/docs-check.yml",
+      "content": "name: Docs Check\n\non:\n  pull_request:\n\njobs:\n  docs:\n    runs-on: ubuntu-latest\n    steps:\n      - name: Checkout\n        uses: actions/checkout@v4\n      - name: Verify docs exist\n        run: |\n          test -f README.md\n          test -f docs/project-charter.md\n          test -f docs/runbook.md\n"
+    }
+  ]
+}
